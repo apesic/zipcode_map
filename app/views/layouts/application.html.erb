@@ -2,13 +2,25 @@
 <html>
 <head>
   <title>Zipmap</title>
-  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
-  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <%= stylesheet_link_tag    'application', media: 'all' %>
+  <script type="text/javascript"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB94gVPGj6JAtNRUu_tDXnZYcDDKji0xoo">
+  </script>
+  <%= javascript_include_tag 'application'%>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.min.js"></script>
   <%= csrf_meta_tags %>
 </head>
 <body>
-
+<nav class="navbar navbar-inverse" role="navigation" id="nav">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Zipmap</a>
+    </div>
+  </div>
+</nav>
+<div class="container-fluid" id="content">
 <%= yield %>
-
+</div>
 </body>
 </html>
