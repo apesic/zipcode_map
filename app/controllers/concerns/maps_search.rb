@@ -27,7 +27,12 @@ module MapsSearch
        geometry: RGeo::GeoJSON.encode(zip.geometry)
       }
     end
-    # binding.pry
     return result
+  end
+
+  def intersecting_zips(path)
+    ZIPCACHE.select do |zip|
+      path.intersects?(zip.geometry)
+    end
   end
 end
