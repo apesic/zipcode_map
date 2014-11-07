@@ -8,14 +8,24 @@
     };
 
     map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+    map.layers = [];
   }
-
   google.maps.event.addDomListener(window, 'load', initialize);
 
-  return map;
 })();
 
 var zipSearch = (function() {
+    var clearMap = function() {
+	map.layers.forEach(function(item) {
+	    item.setMap(null);
+	});
+	map.layers = [];
+    };
+
+    var clearSearch = function() {
+	$('#start-address').val('');
+	$('#end-address').val('');
+    };
 
     var bindEventListeners = function() {
         $('#search').submit(search);
@@ -23,6 +33,8 @@ var zipSearch = (function() {
 
     var search = function(e) {
         e.preventDefault();
+	clearMap();
+	disableForm();
         $.ajax({
             url: 'maps/search',
             method: 'POST',
@@ -30,12 +42,26 @@ var zipSearch = (function() {
             dataType: 'json'
         })
         .done(drawResults)
-        .error(function(data) {
-            console.log(data);
+	.error(function(response){
+	  console.log(response);
+	  toastr.error("No results found", "Error");
+	  enableForm();
         });
     };
 
+    var disableForm = function() {
+	$('#search-btn').attr('disabled', 'disabled').hide();
+	$('.spinner').css('display', 'block');
+    };
+
+    var enableForm = function() {
+	$('#search-btn').removeAttr('disabled').show();
+	$('.spinner').hide();
+    };
+
     var drawResults = function(data) {
+	clearSearch();
+	enableForm();
         addMarker(data.start_point);
         addMarker(data.end_point);
         addLine(data.start_point, data.end_point);
@@ -45,10 +71,12 @@ var zipSearch = (function() {
     var addMarker = function(point) {
         var latLng = new google.maps.LatLng(point.coordinates[1], point.coordinates[0]);
 
-        new google.maps.Marker({
+	var marker = new google.maps.Marker({
           position: latLng,
           map: map
         });
+
+	map.layers.push(marker);
     };
 
     var addLine = function(start, end) {
@@ -59,13 +87,14 @@ var zipSearch = (function() {
 
         var path = new google.maps.Polyline({
             path: coords,
-            geodesic: true,
+	    geodesic: false,
             strokeColor: '#FF0000',
             strokeOpacity: 1.0,
             strokeWeight: 2
           });
 
         path.setMap(map);
+	map.layers.push(path);
 
         var bounds = new google.maps.LatLngBounds;
         bounds.extend(coords[0]);
@@ -89,9 +118,12 @@ var zipSearch = (function() {
                 fillOpacity: 0.35
               });
             zipPoly.setMap(map);
+	    map.layers.push(zipPoly);
+
         });
     };
 
+    // Flatten multipoly into an array of Google Maps LatLon objects
     var getPath = function(coordinates) {
         return _.map(coordinates, function(entry) {
             return _.reduce(entry, function(list, polygon) {
@@ -105,6 +137,8 @@ var zipSearch = (function() {
             }, []);
         });
     };
+
+
 
     var initialize = function() {
         bindEventListeners();
